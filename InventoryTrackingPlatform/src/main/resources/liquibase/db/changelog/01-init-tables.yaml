@@ -1,0 +1,532 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_user_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: users
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: create_item_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: items
+      changes:
+        - createTable:
+            tableName: items
+            columns:
+              - column:
+                  name: item_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(100)
+              - column:
+                  name: current_quantity
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: critical_quantity
+                  type: INTEGER
+              - column:
+                  name: supplier
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: barcode
+                  type: VARCHAR(100)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: create_operation_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: operations
+      changes:
+        - createTable:
+            tableName: operations
+            columns:
+              - column:
+                  name: operation_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: item_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: items(item_id)
+                    foreignKeyName: fk_operation_item
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: users(user_id)
+                    foreignKeyName: fk_operation_user
+              - column:
+                  name: operation_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: previous_quantity
+                  type: INTEGER
+              - column:
+                  name: source
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: create_notification_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: notifications
+      changes:
+        - createTable:
+            tableName: notifications
+            columns:
+              - column:
+                  name: notification_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: users(user_id)
+                    foreignKeyName: fk_notification_user
+              - column:
+                  name: item_id
+                  type: UUID
+                  constraints:
+                    references: items(item_id)
+                    foreignKeyName: fk_notification_item
+              - column:
+                  name: message
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_time
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+
+  - changeSet:
+      id: create_indexes
+      author: author
+      changes:
+        - createIndex:
+            indexName: idx_item_name
+            tableName: items
+            columns:
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+        - createIndex:
+            indexName: idx_item_category
+            tableName: items
+            columns:
+              - column:
+                  name: category
+                  type: VARCHAR(100)
+        - createIndex:
+            indexName: idx_operation_item
+            tableName: operations
+            columns:
+              - column:
+                  name: item_id
+                  type: UUID
+        - createIndex:
+            indexName: idx_operation_timestamp
+            tableName: operations
+            columns:
+              - column:
+                  name: timestamp
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_notification_user
+            tableName: notifications
+            columns:
+              - column:
+                  name: user_id
+                  type: UUID
+        - createIndex:
+            indexName: idx_notification_status
+            tableName: notifications
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+
+  - changeSet:
+      id: "add_sample_data"
+      author: "author"
+      comment: "Add sample data to all tables"
+      changes:
+        - insert:
+            tableName: "users"
+            columns:
+              - column:
+                  name: "user_id"
+                  value: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+              - column:
+                  name: "username"
+                  value: "admin"
+              - column:
+                  name: "password_hash"
+                  value: "$2a$10$N9qo8uLOickgx2ZMRZoMy.MrYV7.6o7C8ZJ5J8JvR6yIjQzYzF/Ga"
+              - column:
+                  name: "email"
+                  value: "admin@example.com"
+              - column:
+                  name: "role"
+                  value: "ADMIN"
+              - column:
+                  name: "created_at"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "users"
+            columns:
+              - column:
+                  name: "user_id"
+                  value: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+              - column:
+                  name: "username"
+                  value: "manager"
+              - column:
+                  name: "password_hash"
+                  value: "$2a$10$N9qo8uLOickgx2ZMRZoMy.MrYV7.6o7C8ZJ5J8JvR6yIjQzYzF/Ga"
+              - column:
+                  name: "email"
+                  value: "manager@example.com"
+              - column:
+                  name: "role"
+                  value: "MANAGER"
+              - column:
+                  name: "created_at"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "users"
+            columns:
+              - column:
+                  name: "user_id"
+                  value: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
+              - column:
+                  name: "username"
+                  value: "worker"
+              - column:
+                  name: "password_hash"
+                  value: "$2a$10$N9qo8uLOickgx2ZMRZoMy.MrYV7.6o7C8ZJ5J8JvR6yIjQzYzF/Ga"
+              - column:
+                  name: "email"
+                  value: "worker@example.com"
+              - column:
+                  name: "role"
+                  value: "WORKER"
+              - column:
+                  name: "created_at"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "items"
+            columns:
+              - column:
+                  name: "item_id"
+                  value: "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"
+              - column:
+                  name: "name"
+                  value: "Ноутбук Dell XPS 15"
+              - column:
+                  name: "category"
+                  value: "Електроніка"
+              - column:
+                  name: "current_quantity"
+                  value: "5"
+              - column:
+                  name: "critical_quantity"
+                  value: "2"
+              - column:
+                  name: "supplier"
+                  value: "Dell Inc."
+              - column:
+                  name: "description"
+                  value: "Потужний бізнес-ноутбук з екраном 4K"
+              - column:
+                  name: "barcode"
+                  value: "123456789012"
+              - column:
+                  name: "created_at"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "items"
+            columns:
+              - column:
+                  name: "item_id"
+                  value: "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"
+              - column:
+                  name: "name"
+                  value: "Монітор Samsung 27\""
+              - column:
+                  name: "category"
+                  value: "Електроніка"
+              - column:
+                  name: "current_quantity"
+                  value: "10"
+              - column:
+                  name: "critical_quantity"
+                  value: "3"
+              - column:
+                  name: "supplier"
+                  value: "Samsung Electronics"
+              - column:
+                  name: "description"
+                  value: "IPS дисплей з роздільною здатністю 2560x1440"
+              - column:
+                  name: "barcode"
+                  value: "234567890123"
+              - column:
+                  name: "created_at"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "items"
+            columns:
+              - column:
+                  name: "item_id"
+                  value: "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"
+              - column:
+                  name: "name"
+                  value: "Офісний стілець"
+              - column:
+                  name: "category"
+                  value: "Меблі"
+              - column:
+                  name: "current_quantity"
+                  value: "3"
+              - column:
+                  name: "critical_quantity"
+                  value: "1"
+              - column:
+                  name: "supplier"
+                  value: "IKEA"
+              - column:
+                  name: "description"
+                  value: "Ергономічний офісний стілець з регулюванням висоти"
+              - column:
+                  name: "barcode"
+                  value: "345678901234"
+              - column:
+                  name: "created_at"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "operations"
+            columns:
+              - column:
+                  name: "operation_id"
+                  value: "a6eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"
+              - column:
+                  name: "item_id"
+                  value: "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"
+              - column:
+                  name: "user_id"
+                  value: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+              - column:
+                  name: "operation_type"
+                  value: "INCOME"
+              - column:
+                  name: "quantity"
+                  value: "5"
+              - column:
+                  name: "previous_quantity"
+                  value: "0"
+              - column:
+                  name: "source"
+                  value: "SUPPLIER"
+              - column:
+                  name: "timestamp"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "operations"
+            columns:
+              - column:
+                  name: "operation_id"
+                  value: "b7eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"
+              - column:
+                  name: "item_id"
+                  value: "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"
+              - column:
+                  name: "user_id"
+                  value: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+              - column:
+                  name: "operation_type"
+                  value: "INCOME"
+              - column:
+                  name: "quantity"
+                  value: "10"
+              - column:
+                  name: "previous_quantity"
+                  value: "0"
+              - column:
+                  name: "source"
+                  value: "SUPPLIER"
+              - column:
+                  name: "timestamp"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "operations"
+            columns:
+              - column:
+                  name: "operation_id"
+                  value: "c8eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"
+              - column:
+                  name: "item_id"
+                  value: "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"
+              - column:
+                  name: "user_id"
+                  value: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
+              - column:
+                  name: "operation_type"
+                  value: "OUTCOME"
+              - column:
+                  name: "quantity"
+                  value: "1"
+              - column:
+                  name: "previous_quantity"
+                  value: "5"
+              - column:
+                  name: "source"
+                  value: "EMPLOYEE"
+              - column:
+                  name: "timestamp"
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: "notifications"
+            columns:
+              - column:
+                  name: "notification_id"
+                  value: "d9eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"
+              - column:
+                  name: "user_id"
+                  value: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+              - column:
+                  name: "item_id"
+                  value: "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"
+              - column:
+                  name: "message"
+                  value: "Залишилось мало офісних стільців (3 шт.), потрібно замовити"
+              - column:
+                  name: "sent_time"
+                  valueComputed: "CURRENT_TIMESTAMP"
+              - column:
+                  name: "status"
+                  value: "UNREAD"
+
+        - insert:
+            tableName: "notifications"
+            columns:
+              - column:
+                  name: "notification_id"
+                  value: "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"
+              - column:
+                  name: "user_id"
+                  value: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+              - column:
+                  name: "message"
+                  value: "Система інвентаризації успішно встановлена"
+              - column:
+                  name: "sent_time"
+                  valueComputed: "CURRENT_TIMESTAMP"
+              - column:
+                  name: "status"
+                  value: "READ"
+
